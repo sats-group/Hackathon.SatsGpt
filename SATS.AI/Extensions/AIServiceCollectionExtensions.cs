@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using OpenAI;
+using SATS.AI.Chat;
 using SATS.AI.Options;
 using SATS.AI.Runners;
 using SATS.AI.Tools;
@@ -10,7 +11,7 @@ public static class AIServiceCollectionExtensions
 {
     public static IServiceCollection AddAI(this IServiceCollection services, OpenAIOptions options)
     {
-        return services
+        services
             .AddSingleton(new OpenAIClient(options.ApiKey))
             .AddSingleton(sp =>
             {
@@ -18,7 +19,9 @@ public static class AIServiceCollectionExtensions
                 var tools = sp.GetServices<ITool>();
                 return new AgentRunner(client.GetChatClient("gpt-4o"), tools);
             })
-            .AddSingleton<ITool, TestTool>();
+            .AddSingleton<ITool, TestTool>()
+            .AddSingleton<ChatStore>();
 
+        return services;
     }
 }

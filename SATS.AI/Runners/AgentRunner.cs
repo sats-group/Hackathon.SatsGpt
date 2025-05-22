@@ -40,7 +40,7 @@ public class AgentRunner(ChatClient chatClient, IEnumerable<ITool> tools)
         return result;
     }
 
-    public async IAsyncEnumerable<StreamUpdate> RunStreamAsync(
+    public async IAsyncEnumerable<string> RunStreamAsync(
         ICollection<ChatMessage> chatMessages, 
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
@@ -57,7 +57,7 @@ public class AgentRunner(ChatClient chatClient, IEnumerable<ITool> tools)
             {
                 foreach (ChatMessageContentPart contentPart in update.ContentUpdate)
                 {
-                    yield return new StreamUpdate(contentPart.Text);
+                    yield return contentPart.Text;
                     contentBuilder.Append(contentPart.Text);
                 }
 
@@ -125,7 +125,7 @@ public class AgentRunner(ChatClient chatClient, IEnumerable<ITool> tools)
         return assistantMessage;
     }
 
-    private async Task ProcessToolCallsAsync(
+    private static async Task ProcessToolCallsAsync(
         IEnumerable<ChatToolCall> toolCalls,
         IEnumerable<ITool> tools,
         ICollection<ChatMessage> messages,
