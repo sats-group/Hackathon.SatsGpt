@@ -6,5 +6,6 @@ export default [
     route("chats", "routes/chats/index.tsx"),
     //route("new", "routes/chats/new.tsx"),
     route("chats/:chatId", "routes/chats/chat.tsx"),
+    route("chats/:chatId/stream", "routes/chats/stream.tsx"),
   ]),
 ] satisfies RouteConfig;
