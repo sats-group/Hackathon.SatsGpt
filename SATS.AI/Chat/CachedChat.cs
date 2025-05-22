@@ -18,6 +18,7 @@ public class CachedChatMessage
     public required ChatMessageRole Role { get; set; }
     public required string Content { get; set; }
     public string? ToolCallId { get; set; }
+    public required string Id { get; set; }
 }
 
 public class CachedChatToolCall

@@ -55,7 +55,8 @@ public class ChatController(AgentRunner runner, ChatStore store) : ControllerBas
             chat.Messages.Add(new CachedChatMessage
             {
                 Role = ChatMessageRole.User,
-                Content = message
+                Content = message,
+                Id = Guid.NewGuid().ToString()
             });
         }
         else
@@ -73,12 +74,14 @@ public class ChatController(AgentRunner runner, ChatStore store) : ControllerBas
                         Content = @"
                             You are a helpful assistant. You will answer questions with a focus on clarity and brevity. Try and keep
                             responses to a maximum of 3 sentences. If you don't know the answer, say 'I don't know'.
-                        "
+                        ",
+                        Id = Guid.NewGuid().ToString()
                     },
                     new ()
                     {
                         Role = ChatMessageRole.User,
-                        Content = message
+                        Content = message,
+                        Id = Guid.NewGuid().ToString()
                     }
                 ]
             };

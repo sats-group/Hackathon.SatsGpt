@@ -10,31 +10,36 @@ public static class ChatMessageMapper
 
         foreach (var message in messages)
         {
+            var id = Guid.NewGuid().ToString();
             var cachedMessage = message switch
             {
                 UserChatMessage userMessage => new CachedChatMessage
                 {
                     Role = ChatMessageRole.User,
                     Content = ExtractContentText(userMessage.Content),
-                    ToolCallId = null
+                    ToolCallId = null,
+                    Id = id
                 },
                 AssistantChatMessage assistantChatMessage => new CachedChatMessage
                 {
                     Role = ChatMessageRole.Assistant,
                     Content = ExtractContentText(assistantChatMessage.Content),
-                    ToolCallId = assistantChatMessage.ToolCalls.FirstOrDefault()?.Id
+                    ToolCallId = assistantChatMessage.ToolCalls.FirstOrDefault()?.Id,
+                    Id = id
                 },
                 SystemChatMessage systemChatMessage => new CachedChatMessage
                 {
                     Role = ChatMessageRole.System,
                     Content = ExtractContentText(systemChatMessage.Content),
-                    ToolCallId = null
+                    ToolCallId = null,
+                    Id = id
                 },
                 ToolChatMessage toolChatMessage => new CachedChatMessage
                 {
                     Role = ChatMessageRole.Tool,
                     Content = ExtractContentText(toolChatMessage.Content),
-                    ToolCallId = toolChatMessage.ToolCallId
+                    ToolCallId = toolChatMessage.ToolCallId,
+                    Id = id
                 },
                 _ => null
             };

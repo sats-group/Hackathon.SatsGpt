@@ -1,7 +1,7 @@
 import { Button } from "~/components/ui/button";
 import type { Route } from "./+types/chat";
 import { cn } from "~/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Loader2 } from "lucide-react";
 import { fetchChat } from "~/lib/chat.server";
 
@@ -19,13 +19,13 @@ export async function loader({ params }: Route.LoaderArgs) {
     };
   }
 
-  console.log("Chat", chat);
   return { chat };
 }
 
 interface ChatMessage {
   content: string;
   role: "user" | "assistant";
+  id: string;
 }
 
 interface Chat {
@@ -39,6 +39,7 @@ const createUserMessage = (message: string) => {
   return {
     content: message,
     role: "user",
+    id: crypto.randomUUID(),
   } as ChatMessage;
 };
 
@@ -47,10 +48,21 @@ export default function Chat({ loaderData, params }: Route.ComponentProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(chat.messages);
   const [currentMessage, setCurrentMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMessages(chat.messages);
+    scrollToBottom();
   }, [chat]);
+
+  const scrollToBottom = useCallback(() => {
+    console.log("scrollToBottom");
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [scrollToBottom]);
 
   const handleStreamResponse = async (response: Response) => {
     if (!response.body) {
@@ -64,6 +76,7 @@ export default function Chat({ loaderData, params }: Route.ComponentProps) {
     const assistantMessage: ChatMessage = {
       content: "",
       role: "assistant",
+      id: crypto.randomUUID(),
     };
     setMessages(prev => [...prev, assistantMessage]);
 
@@ -130,7 +143,7 @@ export default function Chat({ loaderData, params }: Route.ComponentProps) {
         <div className="mx-auto max-w-3xl space-y-4">
           {messages.map((message) => (
             <div
-              key={message.content}
+              key={message.id}
               className={cn(
                 "flex w-full",
                 message.role === "user" ? "justify-end" : "justify-start"
@@ -146,6 +159,7 @@ export default function Chat({ loaderData, params }: Route.ComponentProps) {
               </div>
             </div>
           ))}
+          <div ref={messagesEndRef} />
         </div>
       </div>
       <div className="p-4">
