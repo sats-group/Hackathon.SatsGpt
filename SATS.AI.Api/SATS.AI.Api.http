@@ -10,3 +10,39 @@ Accept: text/plain
 Content-Type: application/json
 
 "What is OpenAI?"
+
+###
+
+POST {{Host}}/documents
+Accept: application/json
+Content-Type: application/json
+
+{
+  "title": "iOS App Release Guide",
+  "content": "This document describes how to release the SATS Member iOS app.",
+  "path": "sats.organization.departments.digital.app"
+}
+
+###
+
+POST {{Host}}/documents
+Accept: application/json
+Content-Type: application/json
+
+{
+  "title": "Personal Trainer Booking System",
+  "content": "This document describes how the SATS personal trainer booking system works.",
+  "path": "sats.manuals"
+}
+
+###
+
+GET {{Host}}/documents/directory-search?path=sats.manuals
+Accept: application/json
+Content-Type: application/json
+
+###
+
+GET {{Host}}/documents/search?query=How%20does%20I%20book%20a%20group%20class
+Accept: application/json
+Content-Type: application/json

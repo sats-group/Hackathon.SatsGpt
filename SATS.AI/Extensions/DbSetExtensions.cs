@@ -9,7 +9,7 @@ public static class DbSetExtensions
     public static IQueryable<Document> GetDocumentsUnderPath(this DbSet<Document> documentSet, string path)
     {
         var sql = @"
-            SELECT * FROM Documents
+            SELECT * FROM documents
             WHERE path <@ @ltreePath
         ";
 
@@ -26,9 +26,10 @@ public static class DbSetExtensions
     public static IQueryable<Document> SearchByEmbedding(this DbSet<Document> documentSet, float[] embedding, int limit = 5)
     {
         var sql = """
-            SELECT *, 1 - (embedding <#> @queryEmbedding) AS score
+            SELECT *
             FROM documents
-            ORDER BY embedding <#> @queryEmbedding
+            WHERE (1 - (embedding <=> @queryEmbedding::vector)) > 0.5
+            ORDER BY embedding <=> @queryEmbedding::vector
             LIMIT @topK
         """;
 

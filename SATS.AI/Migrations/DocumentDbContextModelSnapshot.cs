@@ -28,30 +28,34 @@ namespace SATS.AI.Migrations
             modelBuilder.Entity("SATS.AI.Documents.Entities.Document", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("content");
 
                     b.Property<Vector>("Embedding")
                         .IsRequired()
-                        .HasColumnType("vector(1536)");
+                        .HasColumnType("vector(1536)")
+                        .HasColumnName("embedding");
 
                     b.Property<string>("Path")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("ltree");
+                        .HasColumnType("ltree")
+                        .HasColumnName("path");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("title");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Documents");
+                    b.ToTable("documents", (string)null);
                 });
 #pragma warning restore 612, 618
         }

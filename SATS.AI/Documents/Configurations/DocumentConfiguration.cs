@@ -8,28 +8,35 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
 {
     public void Configure(EntityTypeBuilder<Document> builder)
     {
+        builder.ToTable("documents");
+
         builder
             .Property(d => d.Id)
-            .ValueGeneratedNever();
+            .ValueGeneratedNever()
+            .HasColumnName("id");
 
         builder
             .Property(d => d.Title)
             .IsRequired()
-            .HasMaxLength(255);
+            .HasMaxLength(255)
+            .HasColumnName("title");
 
         builder
             .Property(d => d.Content)
-            .IsRequired();
+            .IsRequired()
+            .HasColumnName("content");
 
         builder
             .Property(d => d.Path)
             .IsRequired()
             .HasMaxLength(255)
-            .HasColumnName("ltree");
+            .HasColumnType("ltree")
+            .HasColumnName("path");
 
         builder
             .Property(d => d.Embedding)
             .IsRequired()
-            .HasColumnType("vector(1536)");
+            .HasColumnType("vector(1536)")
+            .HasColumnName("embedding");
     }
 }

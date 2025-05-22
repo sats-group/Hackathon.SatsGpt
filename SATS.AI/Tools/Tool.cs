@@ -54,19 +54,3 @@ public abstract class GenericTool<TInput, TOutput> : Tool
         return SchemaProvider.GenerateParameterSchema(methodInfo!)!;
     }
 }
-
-public class DynamicTool<TInput, TOutput>(
-    string name, 
-    string description,
-    Func<TInput, CancellationToken, Task<TOutput?>> func) : GenericTool<TInput, TOutput>
-{
-    private readonly Func<TInput, CancellationToken, Task<TOutput?>> _func = func;
-
-    public override string Name { get; } = name;
-    public override string Description { get; } = description;
-
-    public override Task<TOutput?> ExecuteAsync(TInput input, CancellationToken cancellationToken)
-        => _func(input, cancellationToken);
-}
-
-
