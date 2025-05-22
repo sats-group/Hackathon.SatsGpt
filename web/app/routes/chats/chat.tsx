@@ -57,7 +57,7 @@ export default function Chat({ loaderData }: Route.ComponentProps) {
           break;
         }
 
-        const text = decoder.decode(value).replace(/\n$/, "");
+        const text = decoder.decode(value);
         console.log(`stream chunk ${JSON.stringify(text)}`);
         setMessages(prev => {
           const lastMessage = prev[prev.length - 1];

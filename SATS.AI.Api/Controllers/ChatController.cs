@@ -42,7 +42,7 @@ public class ChatController(AgentRunner runner, ChatStore store) : ControllerBas
         if (store.Contains(chatId))
         {
             chat = store.Get(chatId)!;
-            
+
             chat.Messages.Add(new CachedChatMessage
             {
                 Role = ChatMessageRole.User,
@@ -81,7 +81,7 @@ public class ChatController(AgentRunner runner, ChatStore store) : ControllerBas
 
         await foreach (var content in updates)
         {
-            await streamWriter.WriteLineAsync(content);
+            await streamWriter.WriteAsync(content);
             await streamWriter.FlushAsync(cancellationToken);
         }
 
