@@ -37,33 +37,37 @@ public class ChatController(AgentRunner runner, ChatStore store) : ControllerBas
         var streamWriter = new StreamWriter(Response.BodyWriter.AsStream());
         var cancellationToken = HttpContext.RequestAborted;
 
+        CachedChat chat;
+
         if (store.Contains(chatId))
         {
-            throw new InvalidOperationException("Chat already exists");
+            chat = store.Get(chatId)!;
         }
-
-        var chat = new CachedChat
+        else
         {
-            Id = chatId,
-            Name = "Untitled",
-            CreatedAt = DateTime.UtcNow,
-            Messages =
-            [
-                new ()
-                {
-                    Role = ChatMessageRole.System,
-                    Content = @"
-                        You are a helpful assistant. You will answer questions with a focus on clarity and brevity. Try and keep
-                        responses to a maximum of 3 sentences. If you don't know the answer, say 'I don't know'.
-                    "
-                },
-                new ()
-                {
-                    Role = ChatMessageRole.User,
-                    Content = message
-                }
-            ]
-        };
+            chat = new CachedChat
+            {
+                Id = chatId,
+                Name = "Untitled",
+                CreatedAt = DateTime.UtcNow,
+                Messages =
+                [
+                    new ()
+                    {
+                        Role = ChatMessageRole.System,
+                        Content = @"
+                            You are a helpful assistant. You will answer questions with a focus on clarity and brevity. Try and keep
+                            responses to a maximum of 3 sentences. If you don't know the answer, say 'I don't know'.
+                        "
+                    },
+                    new ()
+                    {
+                        Role = ChatMessageRole.User,
+                        Content = message
+                    }
+                ]
+            };
+        }
 
         var chatMessages = ChatMessageMapper.MapChatMessages(chat.Messages);
 
