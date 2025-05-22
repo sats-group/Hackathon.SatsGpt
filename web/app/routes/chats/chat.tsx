@@ -3,36 +3,54 @@ import type { Route } from "./+types/chat";
 import { cn } from "~/lib/utils";
 import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { fetchChat } from "~/lib/chat.server";
 
 export async function loader({ params }: Route.LoaderArgs) {
-  //let chat = await fetchChat(params.chatId);
-  return { chatId: params.chatId };
+  const chat = await fetchChat({ id: params.chatId });
+
+  if (!chat) {
+    return {
+      chat: {
+        id: params.chatId,
+        name: `Chat ${params.chatId}`,
+        createdAt: new Date().toISOString(),
+        messages: [],
+      },
+    };
+  }
+
+  console.log("Chat", chat);
+  return { chat };
 }
 
-interface Message {
-  id: string;
+interface ChatMessage {
   content: string;
   role: "user" | "assistant";
 }
 
+interface Chat {
+  id: string;
+  name: string;
+  createdAt: string;
+  messages: ChatMessage[];
+}
+
 const createUserMessage = (message: string) => {
   return {
-    id: crypto.randomUUID(),
     content: message,
     role: "user",
-  } as Message;
+  } as ChatMessage;
 };
 
-export default function Chat({ loaderData }: Route.ComponentProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
+export default function Chat({ loaderData, params }: Route.ComponentProps) {
+  const { chat } = loaderData;
+  const [messages, setMessages] = useState<ChatMessage[]>(chat.messages);
   const [currentMessage, setCurrentMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    console.log("Resetting state", loaderData.chatId);
-    setMessages([]);
-    setCurrentMessage("");
-  }, [loaderData.chatId]);
+    setMessages(chat.messages);
+  }, [chat]);
 
   const handleStreamResponse = async (response: Response) => {
     if (!response.body) {
@@ -43,8 +61,7 @@ export default function Chat({ loaderData }: Route.ComponentProps) {
     const decoder = new TextDecoder();
 
     // Create initial assistant message
-    const assistantMessage: Message = {
-      id: crypto.randomUUID(),
+    const assistantMessage: ChatMessage = {
       content: "",
       role: "assistant",
     };
@@ -88,7 +105,7 @@ export default function Chat({ loaderData }: Route.ComponentProps) {
     setCurrentMessage("");
 
     try {
-      const response = await fetch(`/chats/${loaderData.chatId}/stream`, {
+      const response = await fetch(`/chats/${loaderData.chat.id}/stream`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -113,7 +130,7 @@ export default function Chat({ loaderData }: Route.ComponentProps) {
         <div className="mx-auto max-w-3xl space-y-4">
           {messages.map((message) => (
             <div
-              key={message.id}
+              key={message.content}
               className={cn(
                 "flex w-full",
                 message.role === "user" ? "justify-end" : "justify-start"

@@ -2,8 +2,29 @@ import "dotenv/config";
 
 const apiUrl = process.env.API_URL;
 
-async function updateChat({ id, message }: { id: string; message: string }) {
-  const response = await fetch(`${apiUrl}/api/chat/${id}`, {
+async function apiFetch(
+  input: string | URL | globalThis.Request,
+  init?: RequestInit,
+): Promise<Response> {
+  console.log("API request", init?.method ?? "GET", input,);
+  return fetch(input, init);
+}
+
+export async function fetchChat({ id }: { id: string }) {
+  const response = await apiFetch(`${apiUrl}/api/chat/${id}`);
+  if (!response.ok) {
+    return null;
+  }
+  return response.json();
+}
+
+export async function fetchAllChats() {
+  const response = await apiFetch(`${apiUrl}/api/chat`);
+  return response.json();
+}
+
+export async function updateChat({ id, message }: { id: string; message: string }) {
+  const response = await apiFetch(`${apiUrl}/api/chat/${id}`, {
     method: "POST",
     headers: {
       Accept: "text/plain",
@@ -25,5 +46,3 @@ async function updateChat({ id, message }: { id: string; message: string }) {
 
   return response.body;
 }
-
-export { updateChat };
