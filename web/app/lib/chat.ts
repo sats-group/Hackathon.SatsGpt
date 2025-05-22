@@ -18,6 +18,9 @@ async function updateChat({ id, message }: { id: string, message: string }) {
   }
 
   console.log("response", response);
+  const clonedResponse = response.clone();
+  const text = await clonedResponse.text();
+  console.log("Response body:", text);
 
   return response;
 }

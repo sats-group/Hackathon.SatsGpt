@@ -51,6 +51,12 @@ export default function Chat({ loaderData }: Route.ComponentProps) {
   const pending = fetcher.state === "submitting";
 
   useEffect(() => {
+    console.log("Resetting state", loaderData.chatId);
+    setMessages([]);
+    setCurrentMessage("");
+  }, [loaderData.chatId]);
+
+  useEffect(() => {
     if (fetcher.state === "idle" && fetcher.data) {
       const response = new Response(fetcher.data);
       const reader = response.body?.getReader();
