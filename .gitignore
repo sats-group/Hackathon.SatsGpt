@@ -6,6 +6,9 @@ docker/volumes/
 project.lock.json
 .DS_Store
 
+# ASP.NET
+appsettings*.json
+
 # Python-specific
 __pycache__/
 *.py[cod]
