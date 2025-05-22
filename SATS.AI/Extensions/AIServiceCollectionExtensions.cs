@@ -20,7 +20,8 @@ public static class AIServiceCollectionExtensions
                 return new AgentRunner(client.GetChatClient("gpt-4o"), tools);
             })
             .AddSingleton<ITool, TestTool>()
-            .AddSingleton<ChatStore>();
+            .AddSingleton<ChatStore>()
+            .AddMemoryCache();
 
         return services;
     }
