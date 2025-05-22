@@ -1,12 +1,45 @@
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using SATS.AI.Documents.Entities;
 
 namespace SATS.AI.Extensions;
 
 public static class DbSetExtensions
 {
-    // public static IQueryable<List<Document>> GetDocumentsUnderPath(this DbSet<Document> documentSet, string path)
-    // {
-        
-    // }
+    public static IQueryable<Document> GetDocumentsUnderPath(this DbSet<Document> documentSet, string path)
+    {
+        var sql = @"
+            SELECT * FROM Documents
+            WHERE path <@ @ltreePath
+        ";
+
+        var parameters = new[]
+        {
+            new NpgsqlParameter("ltreePath", NpgsqlTypes.NpgsqlDbType.LTree) { Value = path }
+        };
+
+        return documentSet.FromSqlRaw(sql, parameters)
+            .AsNoTracking()
+            .AsQueryable();
+    }
+
+    public static IQueryable<Document> SearchByEmbedding(this DbSet<Document> documentSet, float[] embedding, int limit = 5)
+    {
+        var sql = """
+            SELECT *, 1 - (embedding <#> @queryEmbedding) AS score
+            FROM documents
+            ORDER BY embedding <#> @queryEmbedding
+            LIMIT @topK
+        """;
+
+        var parameters = new[]
+        {
+            new NpgsqlParameter("queryEmbedding", embedding),
+            new NpgsqlParameter("topK", limit)
+        };
+
+        return documentSet.FromSqlRaw(sql, parameters)
+            .AsNoTracking()
+            .AsQueryable();
+    }
 }
