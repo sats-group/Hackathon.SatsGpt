@@ -42,6 +42,12 @@ public class ChatController(AgentRunner runner, ChatStore store) : ControllerBas
         if (store.Contains(chatId))
         {
             chat = store.Get(chatId)!;
+            
+            chat.Messages.Add(new CachedChatMessage
+            {
+                Role = ChatMessageRole.User,
+                Content = message
+            });
         }
         else
         {

@@ -18,6 +18,11 @@ public static class AIServiceCollectionExtensions
             .AddSingleton(sp =>
             {
                 var client = sp.GetRequiredService<OpenAIClient>();
+                return client.GetEmbeddingClient("text-embedding-3-small");
+            })
+            .AddSingleton(sp =>
+            {
+                var client = sp.GetRequiredService<OpenAIClient>();
                 var tools = sp.GetServices<ITool>() ?? [];
                 return new AgentRunner(client.GetChatClient("gpt-4o"), tools);
             })

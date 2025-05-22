@@ -5,8 +5,8 @@ Accept: application/json
 
 ###
 
-POST {{Host}}/chat/CB5F9424-7210-4FC8-8F54-F1AC9915943A
+POST {{Host}}/chat/5EFEA1C9-97D0-4052-8BEA-C9B5E84EB5D9
 Accept: text/plain
 Content-Type: application/json
 
-"Tell me about yourself"
+"What is OpenAI?"
