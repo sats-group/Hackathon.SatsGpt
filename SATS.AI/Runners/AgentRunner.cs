@@ -2,17 +2,18 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Newtonsoft.Json;
 using OpenAI.Chat;
+using SATS.AI.Schema;
 using SATS.AI.Tools;
 
 namespace SATS.AI.Runners;
 
 public class AgentRunner(ChatClient chatClient, IEnumerable<ITool> tools) 
 {
-    public async Task<string> RunAsync(
+    public async Task<T> RunAsync<T>(
         ICollection<ChatMessage> chatMessages,        
         CancellationToken cancellationToken = default)
     {
-        var options = BuildChatCompletionOptions(tools);
+        var options = BuildChatCompletionOptions<T>(tools);
 
         bool requiresToolExecution;
         do
@@ -36,15 +37,17 @@ public class AgentRunner(ChatClient chatClient, IEnumerable<ITool> tools)
             }
         } while (requiresToolExecution);
 
-        var result = ExtractResponseContent(chatMessages);
-        return result;
+        var json = ExtractResponseContent(chatMessages);
+        var result = JsonConvert.DeserializeObject<T>(json);
+        
+        return result!;
     }
 
     public async IAsyncEnumerable<string> RunStreamAsync(
         ICollection<ChatMessage> chatMessages, 
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var options = BuildChatCompletionOptions(tools);
+        var options = BuildChatCompletionOptions<string>(tools);
 
         bool requiresToolExecution;
         do
@@ -103,7 +106,7 @@ public class AgentRunner(ChatClient chatClient, IEnumerable<ITool> tools)
         } while (requiresToolExecution);
     }
 
-    private static ChatCompletionOptions BuildChatCompletionOptions(IEnumerable<ITool> tools)
+    private static ChatCompletionOptions BuildChatCompletionOptions<T>(IEnumerable<ITool> tools)
     {
         var options = new ChatCompletionOptions();
 
@@ -111,6 +114,14 @@ public class AgentRunner(ChatClient chatClient, IEnumerable<ITool> tools)
         {
             options.Tools.Add(tool.ToChatTool());
         }
+
+        options.ResponseFormat = typeof(T) == typeof(string)
+            ? ChatResponseFormat.CreateTextFormat()
+            : ChatResponseFormat.CreateJsonSchemaFormat(
+                typeof(T).Name,
+                SchemaProvider.GenerateBinarySchema<T>(false),
+                jsonSchemaIsStrict: true
+            );
 
         return options;
     }
@@ -155,6 +166,6 @@ public class AgentRunner(ChatClient chatClient, IEnumerable<ITool> tools)
         return assistantMessage.Content
             .Where(cp => cp.Kind == ChatMessageContentPartKind.Text)
             .Select(cp => cp.Text)
-            .FirstOrDefault() ?? throw new InvalidOperationException("No content found in the assistant message.");
+            .FirstOrDefault() ?? string.Empty;
     }
 }

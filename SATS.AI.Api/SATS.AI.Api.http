@@ -1,0 +1,12 @@
+@Host = http://localhost:5166/api
+
+GET {{Host}}/test
+Accept: application/json
+
+###
+
+POST {{Host}}/chat/CB5F9424-7210-4FC8-8F54-F1AC9915943A
+Accept: text/plain
+Content-Type: application/json
+
+"Tell me about yourself"

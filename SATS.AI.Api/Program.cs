@@ -3,9 +3,14 @@ using SATS.AI.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
-var options = builder.Configuration.GetSection("OpenAI").Get<OpenAIOptions>();
-builder.Services.AddAI(options!);
+
+var openAIoptions = builder.Configuration.GetSection("OpenAI").Get<OpenAIOptions>();
+builder.Services.AddChat(openAIoptions!);
+
+var postgresOptions = builder.Configuration.GetSection("Postgres").Get<PostgresOptions>();
+builder.Services.AddDocumentStore(postgresOptions!);
 
 var app = builder.Build();
+app.Services.ApplyPendingMigrations();
 app.MapControllers();
 app.Run();
