@@ -11,15 +11,7 @@ export default function ChatsOverview({
 }: Route.ComponentProps) {
   return (
     <div>
-      <h1>Hello {loaderData.name}</h1>
-      <ul>
-        <li>
-          <Link to="/chats/1">Chat 1</Link>
-        </li>
-        <li>
-          <Link to="/chats/2">Chat 2</Link>
-        </li>
-      </ul>
+      <h1>chats index</h1>
     </div>
   );
 }

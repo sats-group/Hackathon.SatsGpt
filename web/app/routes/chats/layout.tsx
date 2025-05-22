@@ -1,5 +1,5 @@
 import { BotMessageSquare } from "lucide-react";
-import { Link, Outlet } from "react-router";
+import { Link, Outlet, useNavigate } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
   Sidebar,
@@ -14,6 +14,7 @@ import {
   SidebarProvider,
 } from "~/components/ui/sidebar";
 import { SidebarInset } from "~/components/ui/sidebar";
+import { useState } from "react";
 
 export default function Layout() {
   return (
@@ -27,7 +28,22 @@ export default function Layout() {
   );
 }
 
+interface Chat {
+  id: string;
+  name: string;
+}
+
 function AppSidebar() {
+  const [chats, setChats] = useState<Chat[]>([]);
+  const navigate = useNavigate();
+
+  function createChat() {
+    const uuid = crypto.randomUUID();
+    const chat = { id: uuid, name: `Chat ${new Date().toLocaleString()}` };
+    console.log(chat);
+    setChats([...chats, chat]);
+    navigate(`/chats/${uuid}`);
+  }
 
   return (
     <Sidebar>
@@ -36,25 +52,39 @@ function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Chats</SidebarGroupLabel>
           <SidebarGroupContent>
-            {/* <Button variant="default">New Chat</Button>
-            <Link to="/chats">Chats</Link> */}
             <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
+              <SidebarMenuItem>
+                {/* <SidebarMenuButton
                     asChild
                     size="lg"
                     variant="outline"
                     // isActive={location.pathname === "/"}
+                  > */}
+                <Button onClick={() => createChat()} className="w-full">
+                  <BotMessageSquare />
+                  <span>New Chat</span>
+                </Button>
+                {/* </SidebarMenuButton> */}
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>History</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {chats.map((chat) => (
+                <SidebarMenuItem key={chat.id}>
+                  <SidebarMenuButton
+                    asChild
+                    // isActive={location.pathname === "/"}
                   >
-                    <Link to="/chats/new">
-                      <BotMessageSquare />
-                      <span>New Chat</span>
-                    </Link>
+                    <Link to={`/chats/${chat.id}`}>{chat.name}</Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              </SidebarMenu>
+              ))}
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
