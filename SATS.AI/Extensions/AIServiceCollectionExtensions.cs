@@ -18,10 +18,9 @@ public static class AIServiceCollectionExtensions
             .AddSingleton(sp =>
             {
                 var client = sp.GetRequiredService<OpenAIClient>();
-                var tools = sp.GetServices<ITool>();
+                var tools = sp.GetServices<ITool>() ?? [];
                 return new AgentRunner(client.GetChatClient("gpt-4o"), tools);
             })
-            .AddSingleton<ITool, TestTool>()
             .AddSingleton<ChatStore>()
             .AddSingleton<ChatNameProvider>();
 
