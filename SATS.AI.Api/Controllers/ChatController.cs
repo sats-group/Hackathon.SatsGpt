@@ -25,7 +25,16 @@ public class ChatController(AgentRunner runner, ChatStore store) : ControllerBas
             return NotFound();
         }
 
-        return Ok(chat);
+        // Filter out system messages
+        var filteredChat = new CachedChat
+        {
+            Id = chat.Id,
+            Name = chat.Name,
+            CreatedAt = chat.CreatedAt,
+            Messages = chat.Messages.Where(m => m.Role != ChatMessageRole.System).ToList()
+        };
+
+        return Ok(filteredChat);
     }
 
     [HttpPost("{chatId}")]
