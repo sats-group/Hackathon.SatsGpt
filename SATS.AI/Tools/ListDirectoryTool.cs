@@ -2,11 +2,13 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Schema;
 using SATS.AI.Documents;
 using SATS.AI.Extensions;
+using SATS.AI.Models;
+using SATS.AI.Utilities;
 
 namespace SATS.AI.Tools;
 
 public class ListDirectoryTool(DocumentDbContext dbContext)
-    : Tool<DirectoryListingQuery, List<DirectoryEntry>>
+    : Tool<DirectoryListingQuery, Result<List<DirectoryEntry>>>
 {
     public override string Name => "ListDirectory";
     public override string Description => """
@@ -14,21 +16,30 @@ public class ListDirectoryTool(DocumentDbContext dbContext)
         Helpful when users refer to something specific (e.g., “How do I make a new release of the iOS app?”).
     """;
 
-    public override async Task<List<DirectoryEntry>?> ExecuteAsync(DirectoryListingQuery input, CancellationToken cancellationToken)
+    public override async Task<Result<List<DirectoryEntry>>?> ExecuteAsync(DirectoryListingQuery input, CancellationToken cancellationToken)
     {
-        var docs = await dbContext
-            .ListDocuments(input.Path)
-            .Select(d => new DirectoryEntry { Title = d.Title, Path = d.Path, IsDocument = true })
-            .Distinct()
-            .ToListAsync(cancellationToken);
+        try
+        {
+            var path = PathHelper.ToLTree(input.Path);
 
-        var subfolders = docs
-            .Select(d => d.Path[(input.Path.Length + 1)..].Split('.').First())
-            .Distinct()
-            .Select(name => new DirectoryEntry { Title = name, Path = $"{input.Path}.{name}", IsDocument = false })
-            .ToList();
+            var docs = await dbContext
+                .ListDocuments(path)
+                .Select(d => new DirectoryEntry { Title = d.Title, Path = PathHelper.FromLTree(d.Path), IsDocument = true })
+                .Distinct()
+                .ToListAsync(cancellationToken);
 
-        return [.. subfolders, .. docs];
+            var subfolders = docs
+                .Select(d => d.Path[(input.Path.Length + 1)..].Split('.').First())
+                .Distinct()
+                .Select(name => new DirectoryEntry { Title = name, Path = PathHelper.FromLTree($"{input.Path}.{name}"), IsDocument = false })
+                .ToList();
+
+            return Result<List<DirectoryEntry>>.Success([.. subfolders, .. docs]);
+        }
+        catch (Exception ex)
+        {
+            return Result<List<DirectoryEntry>>.Failure($"An error occurred while listing the directory: {ex.Message}");
+        }
     }
     
     protected override object GetParameterSchema()

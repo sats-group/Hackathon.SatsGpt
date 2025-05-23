@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Schema;
 using SATS.AI.Documents;
@@ -8,18 +7,18 @@ using SATS.AI.Utilities;
 
 namespace SATS.AI.Tools;
 
-public class DeleteDocumentTool(DocumentDbContext dbContext) : Tool<DeleteDocumentByIdCommand, Result<Unit>>
+public class ReadDocumentTool(DocumentDbContext dbContext) : Tool<ReadDocumentByIdQuery, Result<DocumentDto>>
 {
-    public override string Name => "DeleteDocument";
-    public override string Description => "Deletes a document by its ID or path.";
+    public override string Name => "ReadDocument";
+    public override string Description => "Use this when a user requests full content, or when you need to confirm exact wording before updating or responding.";
 
-    public override async Task<Result<Unit>?> ExecuteAsync(DeleteDocumentByIdCommand input, CancellationToken cancellationToken)
+    public override async Task<Result<DocumentDto>?> ExecuteAsync(ReadDocumentByIdQuery input, CancellationToken cancellationToken)
     {
         try
         {
             if (string.IsNullOrEmpty(input.Id) && string.IsNullOrEmpty(input.Path))
             {
-                return Result<Unit>.Failure("Either Id or Path must be provided.");
+                throw new ArgumentException("Either Id or Path must be provided.");
             }
 
             Document? entity = null;
@@ -35,19 +34,25 @@ public class DeleteDocumentTool(DocumentDbContext dbContext) : Tool<DeleteDocume
                 entity = await dbContext.Documents.FirstOrDefaultAsync(d => d.Path == path, cancellationToken);
             }
 
+
             if (entity == null)
             {
-                return Result<Unit>.Failure("Document not found.");
+                return null;
             }
 
-            dbContext.Documents.Remove(entity!);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            var dto = new DocumentDto
+            {
+                Id = entity.Id,
+                Title = entity.Title,
+                Content = entity.Content,
+                Path = entity.Path
+            };
 
-            return Result<Unit>.Success(Unit.Value);
+            return Result<DocumentDto>.Success(dto);
         }
         catch (Exception ex)
         {
-            return Result<Unit>.Failure($"An error occurred while deleting the document: {ex.Message}");
+            return Result<DocumentDto>.Failure($"An error occurred while reading the document: {ex.Message}");
         }
     }
 
@@ -55,8 +60,7 @@ public class DeleteDocumentTool(DocumentDbContext dbContext) : Tool<DeleteDocume
     {
         var schema = new JSchema
         {
-            Type = JSchemaType.Object,
-            Description = "Use either the ID or path to delete a document. If both are provided, the ID will be used."
+            Type = JSchemaType.Object
         };
 
         schema.Properties.Add("Id", new JSchema { Type = JSchemaType.String });
@@ -66,7 +70,7 @@ public class DeleteDocumentTool(DocumentDbContext dbContext) : Tool<DeleteDocume
     }
 }
 
-public record DeleteDocumentByIdCommand
+public record ReadDocumentByIdQuery
 {
     public string? Id { get; set; }
     public string? Path { get; set; }

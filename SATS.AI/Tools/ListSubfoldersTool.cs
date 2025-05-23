@@ -2,11 +2,13 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Schema;
 using Npgsql;
 using SATS.AI.Documents;
+using SATS.AI.Models;
+using SATS.AI.Utilities;
 
 namespace SATS.AI.Tools;
 
 public class ListSubfoldersTool(DocumentDbContext dbContext)
-    : Tool<DocumentDirectoryQuery, List<FolderDto>>
+    : Tool<DocumentDirectoryQuery, Result<List<FolderDto>>>
 {
     public override string Name => "ListSubfolders";
     public override string Description => """
@@ -14,32 +16,39 @@ public class ListSubfoldersTool(DocumentDbContext dbContext)
         Useful when narrowing down which area to browse, starting from ‘sats’.
     """;
 
-    public override async Task<List<FolderDto>?> ExecuteAsync(DocumentDirectoryQuery input, CancellationToken cancellationToken)
+    public override async Task<Result<List<FolderDto>>?> ExecuteAsync(DocumentDirectoryQuery input, CancellationToken cancellationToken)
     {
-        var sql = """
-            SELECT DISTINCT subpath(path, nlevel(@basePath), 1) AS name
-            FROM documents
-            WHERE path <@ @basePath
-              AND nlevel(path) > nlevel(@basePath)
-        """;
-
-        var basePath = input.Path;
-
-        var parameters = new[]
+        try
         {
-            new NpgsqlParameter("basePath", NpgsqlTypes.NpgsqlDbType.LTree) { Value = basePath }
-        };
+            var sql = """
+                SELECT DISTINCT subpath(path, nlevel(@basePath), 1) AS name
+                FROM documents
+                WHERE path <@ @basePath
+                AND nlevel(path) > nlevel(@basePath)
+            """;
 
-        var folderNames = await dbContext.Database
-            .SqlQueryRaw<string>(sql, parameters)
-            .ToListAsync(cancellationToken);
+            var basePath = PathHelper.ToLTree(input.Path);
 
-        var folderDtos = folderNames
-            .Distinct()
-            .Select(name => new FolderDto { Name = name, Path = $"{basePath}.{name}" })
-            .ToList();
+            var parameters = new[]
+            {
+                new NpgsqlParameter("basePath", NpgsqlTypes.NpgsqlDbType.LTree) { Value = basePath }
+            };
 
-        return folderDtos;
+            var folderNames = await dbContext.Database
+                .SqlQueryRaw<string>(sql, parameters)
+                .ToListAsync(cancellationToken);
+
+            var folderDtos = folderNames
+                .Distinct()
+                .Select(name => new FolderDto { Name = name, Path = PathHelper.FromLTree($"{input.Path}.{name}") })
+                .ToList();
+
+            return Result<List<FolderDto>>.Success(folderDtos);
+        }
+        catch (Exception ex)
+        {
+            return Result<List<FolderDto>>.Failure($"An error occurred while listing the subfolders: {ex.Message}");
+        }
     }
 
     protected override object GetParameterSchema()

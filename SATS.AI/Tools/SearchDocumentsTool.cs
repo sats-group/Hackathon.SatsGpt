@@ -3,12 +3,14 @@ using Newtonsoft.Json.Schema;
 using OpenAI.Embeddings;
 using SATS.AI.Documents;
 using SATS.AI.Extensions;
+using SATS.AI.Models;
+using SATS.AI.Utilities;
 
 namespace SATS.AI.Tools;
 
 public class SearchDocumentsTool(
     DocumentDbContext dbContext,
-    EmbeddingClient embeddingClient) : Tool<SearchDocumentsQuery, List<DocumentDto>>
+    EmbeddingClient embeddingClient) : Tool<SearchDocumentsQuery, Result<List<DocumentDto>>>
 {
     public override string Name => "SearchDocuments";
     public override string Description => """
@@ -16,21 +18,30 @@ public class SearchDocumentsTool(
         Best used for broad or loosely phrased user questions like “How do I handle sick leave?” or “What’s the process for club onboarding?”
     """;
 
-    public override async Task<List<DocumentDto>?> ExecuteAsync(SearchDocumentsQuery input, CancellationToken cancellationToken)
+    public override async Task<Result<List<DocumentDto>>?> ExecuteAsync(SearchDocumentsQuery input, CancellationToken cancellationToken)
     {
-        var embedding = await embeddingClient.GenerateEmbeddingAsync(input.Query, null, cancellationToken);
-
-        var documents = await dbContext
-            .SearchDocuments(embedding.Value.ToFloats().ToArray())
-            .ToListAsync(cancellationToken);
-
-        return [.. documents.Select(d => new DocumentDto
+        try
         {
-            Id = d.Id,
-            Title = d.Title,
-            Content = d.Content,
-            Path = d.Path
-        })];
+            var embedding = await embeddingClient.GenerateEmbeddingAsync(input.Query, null, cancellationToken);
+
+            var documents = await dbContext
+                .SearchDocuments(embedding.Value.ToFloats().ToArray())
+                .ToListAsync(cancellationToken);
+
+            List<DocumentDto> dtos = [.. documents.Select(d => new DocumentDto
+            {
+                Id = d.Id,
+                Title = d.Title,
+                Content = d.Content,
+                Path = PathHelper.FromLTree(d.Path)
+            })];
+
+            return Result<List<DocumentDto>>.Success(dtos);
+        }
+        catch (Exception ex)
+        {
+            return Result<List<DocumentDto>>.Failure($"An error occurred while searching for documents: {ex.Message}");
+        }
     }
 
     protected override object GetParameterSchema()

@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json.Schema;
 using OpenAI.Embeddings;
 using Pgvector;
@@ -10,30 +9,37 @@ namespace SATS.AI.Tools;
 
 public class CreateDocumentTool(
     DocumentDbContext dbContext,
-    EmbeddingClient embeddingClient) : Tool<CreateDocumentCommand, Unit>
+    EmbeddingClient embeddingClient) : Tool<CreateDocumentCommand, Result<Unit>>
 {
     public override string Name => "CreateDocument";
     public override string Description => "Adds a new document with a generated embedding.";
 
-    public override async Task<Unit?> ExecuteAsync(CreateDocumentCommand input, CancellationToken cancellationToken)
+    public override async Task<Result<Unit>?> ExecuteAsync(CreateDocumentCommand input, CancellationToken cancellationToken)
     {
-        var response = await embeddingClient.GenerateEmbeddingAsync(input.Content, null, cancellationToken);
-        var embedding = response.Value.ToFloats().ToArray();
-
-        var document = new Document
+        try
         {
-            Id = Guid.NewGuid(),
-            Title = input.Title,
-            Content = input.Content,
-            Summary = input.Summary,
-            Path = input.Path,
-            Embedding = new Vector(embedding)
-        };
+            var response = await embeddingClient.GenerateEmbeddingAsync(input.Content, null, cancellationToken);
+            var embedding = response.Value.ToFloats().ToArray();
 
-        dbContext.Documents.Add(document);
-        await dbContext.SaveChangesAsync(cancellationToken);
+            var document = new Document
+            {
+                Id = Guid.NewGuid(),
+                Title = input.Title,
+                Content = input.Content,
+                Summary = input.Summary,
+                Path = input.Path,
+                Embedding = new Vector(embedding)
+            };
 
-        return Unit.Value;
+            dbContext.Documents.Add(document);
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            return Result<Unit>.Success(Unit.Value);
+        }
+        catch (Exception ex)
+        {
+            return Result<Unit>.Failure($"An error occurred while creating the document: {ex.Message}");
+        }
     }
 
     protected override object GetParameterSchema()
@@ -59,15 +65,8 @@ public class CreateDocumentTool(
 
 public record CreateDocumentCommand
 {
-    [Required]
     public required string Title { get; set; }
-
-    [Required]
     public required string Content { get; set; }
-
-    [Required]
     public required string Summary { get; set; }
-
-    [Required]
     public required string Path { get; set; }
 }
