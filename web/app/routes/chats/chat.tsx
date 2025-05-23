@@ -141,7 +141,7 @@ export default function ChatView({ loaderData, params }: Route.ComponentProps) {
   return (
     <div className="flex h-[calc(100vh)] flex-col">
       <Messages messages={messages} />
-      <div className="p-4 pb-18">
+      <div className="p-4 pb-18 pt-0">
         <div className="mx-auto max-w-3xl border rounded-2xl p-2 shadow-lg">
           <form onSubmit={createMessage} className="flex gap-2 items-end">
             <textarea
