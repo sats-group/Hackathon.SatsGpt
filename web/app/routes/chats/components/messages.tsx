@@ -9,13 +9,21 @@ export function Messages({ messages }: { messages: ChatMessage[] }) {
   // biome-ignore lint/correctness/useExhaustiveDependencies: needs to happen when messages change
   useEffect(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
     }
   }, [messages]);
 
   return (
     <div className="flex-1 overflow-y-auto p-4" ref={chatContainerRef}>
       <div className="mx-auto max-w-3xl space-y-4">
+        {messages.length === 0 && (
+          <div className="flex justify-center items-center h-[calc(100vh-24rem)]">
+            <p className="text-muted-foreground text-xl font-semibold">
+              Is there anything you'd like to know about SATS?
+            </p>
+          </div>
+        )}
         {messages.map((message) => (
           <div
             key={message.id}
