@@ -7,6 +7,7 @@ import { fetchChat } from "~/lib/chat.server";
 import { useFetcher } from "react-router";
 import type { ChatMessage, Chat } from "~/lib/chat-message";
 import { useChatStore } from "~/lib/chat-store";
+import ReactMarkdown from "react-markdown";
 
 export async function loader({ params }: Route.LoaderArgs) {
   const chat = await fetchChat({ id: params.chatId });
@@ -143,7 +144,7 @@ export default function ChatView({ loaderData, params }: Route.ComponentProps) {
             <div
               key={message.id}
               className={cn(
-                "flex w-full",
+                "flex w-full animate-in fade-in slide-in-from-bottom-2 duration-300",
                 message.role === "user" ? "justify-end" : "justify-start"
               )}
             >
@@ -153,7 +154,9 @@ export default function ChatView({ loaderData, params }: Route.ComponentProps) {
                   message.role === "user" ? "bg-muted" : ""
                 )}
               >
-                <p className="text-sm">{message.content}</p>
+                <div className="prose">
+                  <ReactMarkdown>{message.content}</ReactMarkdown>
+                </div>
               </div>
             </div>
           ))}
