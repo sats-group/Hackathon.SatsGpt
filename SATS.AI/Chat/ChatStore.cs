@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Linq;
 
 namespace SATS.AI.Chat;
 
@@ -10,7 +11,7 @@ public class ChatStore
     {
         return _dict.TryGetValue(key, out _);
     }
-    
+
     public CachedChat? Get(string key)
     {
         if (_dict.TryGetValue(key, out CachedChat? cachedChat))
@@ -23,7 +24,7 @@ public class ChatStore
 
     public List<CachedChat> GetAll()
     {
-        return [.. _dict.Values];
+        return [.. _dict.Values.OrderByDescending(x => x.CreatedAt)];
     }
 
     public void Set(string key, CachedChat cachedChat)
