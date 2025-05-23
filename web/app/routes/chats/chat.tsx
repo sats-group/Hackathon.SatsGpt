@@ -1,7 +1,7 @@
 import { Button } from "~/components/ui/button";
 import type { Route } from "./+types/chat";
 import { cn } from "~/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ArrowUp, CircleArrowUp, Loader2 } from "lucide-react";
 import { fetchChat } from "~/lib/chat.server";
 import { useFetcher } from "react-router";
@@ -42,6 +42,7 @@ export default function ChatView({ loaderData, params }: Route.ComponentProps) {
   const [isLoading, setIsLoading] = useState(false);
   const updateChatName = useChatStore((state) => state.updateChatName);
   const fetcher = useFetcher();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setMessages(chat.messages);
@@ -66,6 +67,13 @@ export default function ChatView({ loaderData, params }: Route.ComponentProps) {
       updateChatName(chat.id, fetcher.data.name);
     }
   }, [fetcher.data, chat.id, updateChatName]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: needs to happen when messages change
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [isLoading, textareaRef, messages]);
 
   const handleStreamResponse = async (response: Response) => {
     if (!response.body) {
@@ -140,6 +148,16 @@ export default function ChatView({ loaderData, params }: Route.ComponentProps) {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      const form = e.currentTarget.form;
+      if (form) {
+        form.requestSubmit();
+      }
+    }
+  };
+
   return (
     <div className="flex h-[calc(100vh)] flex-col">
       <Messages messages={messages} />
@@ -152,7 +170,9 @@ export default function ChatView({ loaderData, params }: Route.ComponentProps) {
               className="w-full resize-none rounded-xl bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none"
               value={currentMessage}
               onChange={(e) => setCurrentMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
               disabled={isLoading}
+              ref={textareaRef}
             />
             <Button
               variant="default"
