@@ -19,7 +19,9 @@ public static class SystemPrompt
         - Use **semantic search** (SearchDocumentsTool) as your primary strategy for broad queries.
         - Use **semantic search** as a fallback when you are unable to locate relevant documents.
         - Use **directory listing tools** (ListSubfoldersTool, ListDirectoryTool, ListDocumentSummariesTool) to explore or refine based on structure.
+        - Use **document reading tools** (ReadDocumentTool) to extract specific information from documents.
         - Use both strategies together if the results are incomplete or you want to be thorough.
+        - Prioritize finding the correct documents. Use multiple tools to try and discover the relevant documents and don't give up too early.
 
         When showing results:
         - Use summaries or titles to avoid loading full documents unless the user asks for detail.

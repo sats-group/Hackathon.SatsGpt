@@ -4,6 +4,7 @@ using Pgvector;
 using SATS.AI.Documents;
 using SATS.AI.Documents.Entities;
 using SATS.AI.Models;
+using SATS.AI.Utilities;
 
 namespace SATS.AI.Tools;
 
@@ -27,7 +28,7 @@ public class CreateDocumentTool(
                 Title = input.Title,
                 Content = input.Content,
                 Summary = input.Summary,
-                Path = input.Path,
+                Path = PathHelper.ToLTree(input.Path),
                 Embedding = new Vector(embedding)
             };
 

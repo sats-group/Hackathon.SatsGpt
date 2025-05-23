@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 namespace SATS.AI.Utilities;
 
 public static class PathHelper
@@ -11,7 +13,14 @@ public static class PathHelper
             return string.Empty;
 
         var segments = path.Split(['/', '\\'], StringSplitOptions.RemoveEmptyEntries);
-        return string.Join('.', segments.Select(s => s.ToLowerInvariant()));
+
+        var sanitized = segments
+            .SelectMany(segment => 
+                segment
+                    .Split(new[] { '-', '.' }, StringSplitOptions.RemoveEmptyEntries) // optional
+                    .Select(s => Regex.Replace(s.ToLowerInvariant(), @"[^a-z0-9_]", "_")));
+
+        return string.Join('.', sanitized);
     }
 
     /// <summary>
