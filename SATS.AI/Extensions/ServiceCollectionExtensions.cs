@@ -9,7 +9,7 @@ using SATS.AI.Tools;
 
 namespace SATS.AI.Extensions;
 
-public static class AIServiceCollectionExtensions
+public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddChat(this IServiceCollection services, OpenAIOptions options)
     {
@@ -20,14 +20,23 @@ public static class AIServiceCollectionExtensions
                 var client = sp.GetRequiredService<OpenAIClient>();
                 return client.GetEmbeddingClient("text-embedding-3-small");
             })
-            .AddSingleton(sp =>
+            .AddScoped(sp =>
             {
                 var client = sp.GetRequiredService<OpenAIClient>();
                 var tools = sp.GetServices<ITool>() ?? [];
                 return new AgentRunner(client.GetChatClient("gpt-4o"), tools);
             })
             .AddSingleton<ChatStore>()
-            .AddSingleton<ChatNameProvider>();
+            .AddScoped<ITool, SearchDocumentsTool>()
+            .AddScoped<ITool, ReadDocumentByIdTool>()
+            .AddScoped<ITool, ReadDocumentByPathTool>()
+            .AddScoped<ITool, CreateDocumentTool>()
+            .AddScoped<ITool, UpdateDocumentTool>()
+            .AddScoped<ITool, DeleteDocumentTool>()
+            .AddScoped<ITool, RenderFolderTreeTool>()
+            .AddScoped<ITool, ListDirectoryTool>()
+            .AddScoped<ITool, ListDocumentSummariesTool>()
+            .AddScoped<ITool, ListSubfoldersTool>();
 
         return services;
     }

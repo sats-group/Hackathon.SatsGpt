@@ -44,7 +44,7 @@ public class AgentRunner(ChatClient chatClient, IEnumerable<ITool> tools)
     }
 
     public async IAsyncEnumerable<string> RunStreamAsync(
-        ICollection<ChatMessage> chatMessages, 
+        ICollection<ChatMessage> chatMessages,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var options = BuildChatCompletionOptions<string>(tools);
@@ -104,6 +104,8 @@ public class AgentRunner(ChatClient chatClient, IEnumerable<ITool> tools)
                 }
             }
         } while (requiresToolExecution);
+
+        System.Console.WriteLine("Stream completed.");
     }
 
     private static ChatCompletionOptions BuildChatCompletionOptions<T>(IEnumerable<ITool> tools)

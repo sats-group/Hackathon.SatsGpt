@@ -4,7 +4,7 @@ using SATS.AI.Documents;
 
 namespace SATS.AI.Extensions;
 
-public static class AIServiceProviderExtensions
+public static class ServiceProviderExtensions
 {
     public static IServiceProvider ApplyPendingMigrations(this IServiceProvider serviceProvider)
     {

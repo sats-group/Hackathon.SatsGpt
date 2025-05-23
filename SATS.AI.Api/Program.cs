@@ -1,5 +1,6 @@
 using SATS.AI.Options;
 using SATS.AI.Extensions;
+using SATS.AI.Schema;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();

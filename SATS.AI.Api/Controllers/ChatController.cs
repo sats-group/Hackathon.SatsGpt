@@ -42,7 +42,7 @@ public class ChatController(AgentRunner runner, ChatStore store) : ControllerBas
         if (store.Contains(chatId))
         {
             chat = store.Get(chatId)!;
-            
+
             chat.Messages.Add(new CachedChatMessage
             {
                 Role = ChatMessageRole.User,
@@ -58,19 +58,8 @@ public class ChatController(AgentRunner runner, ChatStore store) : ControllerBas
                 CreatedAt = DateTime.UtcNow,
                 Messages =
                 [
-                    new ()
-                    {
-                        Role = ChatMessageRole.System,
-                        Content = @"
-                            You are a helpful assistant. You will answer questions with a focus on clarity and brevity. Try and keep
-                            responses to a maximum of 3 sentences. If you don't know the answer, say 'I don't know'.
-                        "
-                    },
-                    new ()
-                    {
-                        Role = ChatMessageRole.User,
-                        Content = message
-                    }
+                    new () { Role = ChatMessageRole.System, Content = SystemPrompt.Default },
+                    new () { Role = ChatMessageRole.User, Content = message }
                 ]
             };
         }

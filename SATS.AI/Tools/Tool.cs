@@ -12,45 +12,41 @@ public interface ITool
     ChatTool ToChatTool();
 }
 
-public abstract class Tool : ITool
+public abstract class Tool<TInput, TOutput> : ITool
 {
     public abstract string Name { get; }
     public abstract string Description { get; }
 
-    public abstract Task<object?> ExecuteAsync(string jsonParameters, CancellationToken cancellationToken);
+    public abstract Task<TOutput?> ExecuteAsync(TInput input, CancellationToken cancellationToken);
+
+    public async Task<object?> ExecuteAsync(string jsonParameters, CancellationToken cancellationToken)
+    {
+        if (typeof(TInput) == typeof(string))
+        {
+            return await ExecuteAsync((TInput)(object)jsonParameters, cancellationToken);
+        }
+
+        var input = JsonConvert.DeserializeObject<TInput>(jsonParameters);
+        return await ExecuteAsync(input!, cancellationToken);
+    }
 
     /// <summary>
     /// Converts the tool into a ChatTool for use with an LLM.
     /// </summary>
     public ChatTool ToChatTool()
     {
-        var jsonParameters = JsonConvert.SerializeObject(GetParameterSchema());
-        var binaryParameters = BinaryData.FromString(jsonParameters);
+        BinaryData? binaryParameters = null;
+
+        var parameterSchema = GetParameterSchema();
+
+        if (parameterSchema is not null)
+        {
+            var jsonSchema = JsonConvert.SerializeObject(parameterSchema);
+            binaryParameters = BinaryData.FromString(jsonSchema);
+        }
 
         return ChatTool.CreateFunctionTool(Name, Description, binaryParameters);
     }
 
-    protected abstract object GetParameterSchema();
-}
-
-public abstract class GenericTool<TInput, TOutput> : Tool
-{
-    public override async Task<object?> ExecuteAsync(string jsonParameters, CancellationToken cancellationToken)
-    {
-        if (typeof(TInput) == typeof(string))
-        {
-            return await ExecuteAsync((TInput)(object)jsonParameters, cancellationToken);
-        }
-        
-        var input = JsonConvert.DeserializeObject<TInput>(jsonParameters);
-        return await ExecuteAsync(input!, cancellationToken);
-    }
-
-    public abstract Task<TOutput?> ExecuteAsync(TInput input, CancellationToken cancellationToken);
-
-    protected override object GetParameterSchema()
-    {
-        var methodInfo = GetType().GetMethod(nameof(ExecuteAsync), [typeof(TInput), typeof(CancellationToken)]);
-        return SchemaProvider.GenerateParameterSchema(methodInfo!)!;
-    }
+    protected abstract object? GetParameterSchema();
 }

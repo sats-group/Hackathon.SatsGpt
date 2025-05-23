@@ -1,15 +1,24 @@
 @Host = http://localhost:5166/api
 
-GET {{Host}}/test
+GET {{Host}}/documents/test
 Accept: application/json
 
 ###
 
-POST {{Host}}/chat/5EFEA1C9-97D0-4052-8BEA-C9B5E84EB5D9
+POST {{Host}}/chat/1837FD6D-2A1B-436E-9DB8-303C05B49BB2
 Accept: text/plain
 Content-Type: application/json
 
-"What is OpenAI?"
+# "I'm asking for debug purposes, why did you not find the manuals directory in your first search?"
+"Can you describe the contents of the PT booking system?"
+
+###
+
+POST {{Host}}/chat/1837FD6D-2A1B-436E-9DB8-303C05B49BB2
+Accept: text/plain
+Content-Type: application/json
+
+"Can you try and find that document using vector search?"
 
 ###
 
