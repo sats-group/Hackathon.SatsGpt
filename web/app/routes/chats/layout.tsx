@@ -1,5 +1,6 @@
 import { BotMessageSquare } from "lucide-react";
 import { Link, Outlet, useLoaderData, useNavigate } from "react-router";
+import { useEffect, useRef } from "react";
 import { Button } from "~/components/ui/button";
 import {
   Sidebar,
@@ -14,8 +15,9 @@ import {
   SidebarProvider,
 } from "~/components/ui/sidebar";
 import { SidebarInset } from "~/components/ui/sidebar";
-import { useState } from "react";
 import { fetchAllChats } from "~/lib/chat.server";
+import { useChatStore, useAllChats } from "~/lib/chat-store";
+import type { Chat } from "~/lib/chat-message";
 
 export async function loader() {
   const chats = await fetchAllChats();
@@ -34,15 +36,20 @@ export default function Layout() {
   );
 }
 
-interface Chat {
-  id: string;
-  name: string;
-  createdAt: string;
-}
-
 function AppSidebar() {
-  const { chats: initialChats } = useLoaderData<typeof loader>();
-  const [chats, setChats] = useState<Chat[]>(initialChats);
+  const { chats: downloadedChats } = useLoaderData<typeof loader>();
+  const replaceChats = useChatStore((state) => state.replaceChats);
+  const allChats = useAllChats();
+  const initialLoadDone = useRef(false);
+
+  useEffect(() => {
+    if (!initialLoadDone.current) {
+      replaceChats(downloadedChats);
+      initialLoadDone.current = true;
+    }
+  }, [downloadedChats, replaceChats]);
+
+  const addChat = useChatStore((state) => state.addChat);
   const navigate = useNavigate();
 
   function createChat() {
@@ -51,9 +58,10 @@ function AppSidebar() {
       id: uuid,
       name: `Chat ${new Date().toLocaleString()}`,
       createdAt: new Date().toISOString(),
-    };
+      messages: [],
+    } as Chat;
     console.log(chat);
-    setChats([chat, ...chats]);
+    addChat(chat);
     navigate(`/chats/${uuid}`);
   }
 
@@ -86,11 +94,11 @@ function AppSidebar() {
           <SidebarGroupLabel>History</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {chats.map((chat) => (
+              {allChats.map((chat) => (
                 <SidebarMenuItem key={chat.id}>
                   <SidebarMenuButton
                     asChild
-                    // isActive={location.pathname === "/"}
+                    isActive={location.pathname === `/chats/${chat.id}`}
                   >
                     <Link to={`/chats/${chat.id}`}>
                       {chat.name}

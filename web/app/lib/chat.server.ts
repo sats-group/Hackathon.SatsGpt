@@ -46,3 +46,18 @@ export async function updateChat({ id, message }: { id: string; message: string 
 
   return response.body;
 }
+
+export async function summarizeChat({ id }: { id: string }) {
+  const response = await apiFetch(`${apiUrl}/api/chat/${id}/summarize`, {
+    method: "POST",
+  });
+
+  if (!response.ok) {
+    console.error("response", response);
+    throw new Error(
+      `HTTP error! status: ${response.status} ${response.statusText}`
+    );
+  }
+
+  return response.json();
+}

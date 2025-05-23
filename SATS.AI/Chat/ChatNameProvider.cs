@@ -10,11 +10,11 @@ public class ChatNameProvider(AgentRunner runner)
         var chatMessages = new List<ChatMessage>
         {
             ChatMessage.CreateSystemMessage(@"
-                Your task is to read the first message of a chat and suggest a name for the chat.
+                Your task is to read the first messages of a chat and suggest a name for the chat.
                 The name should be short and descriptive, ideally one to three words.
             "),
             ChatMessage.CreateUserMessage(@$"
-                Please suggest a name for the chat based on the following message: {message}
+                Please suggest a name for the chat based on the following messages: {message}
             ")
         };
 

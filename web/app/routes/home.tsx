@@ -1,12 +1,17 @@
 import type { Route } from "./+types/home";
-import { Link } from "react-router";
+import { Link, redirect } from "react-router";
 
-// export function meta({}: Route.MetaArgs) {
-//   return [
-//     { title: "New React Router App" },
-//     { name: "description", content: "Welcome to React Router!" },
-//   ];
-// }
+// biome-ignore lint/correctness/noEmptyPattern: it is what it is
+export function meta({}: Route.MetaArgs) {
+  return [
+    { title: "SATS GPT" },
+    { name: "description", content: "Your SATS Knowledge Assistant" },
+  ];
+}
+
+export async function loader() {
+  return redirect("/chats");
+}
 
 export default function Home() {
   return <Link to="/chats">Chats</Link>;

@@ -7,7 +7,7 @@ namespace SATS.AI.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ChatController(AgentRunner runner, ChatStore store) : ControllerBase
+public class ChatController(AgentRunner runner, ChatStore store, ChatNameProvider nameProvider) : ControllerBase
 {
     [HttpGet]
     public IActionResult GetChatList()
@@ -35,6 +35,22 @@ public class ChatController(AgentRunner runner, ChatStore store) : ControllerBas
         };
 
         return Ok(filteredChat);
+    }
+
+    [HttpPost("{chatId}/summarize")]
+    public async Task<IActionResult> SummarizeChat([FromRoute] string chatId)
+    {
+        var chat = store.Get(chatId);
+        if (chat == null)
+        {
+            return NotFound();
+        }
+
+        var messageThread = chat.Messages.Select(m => m.Content).Take(5).ToArray();
+        var summary = await nameProvider.GenerateChatName(string.Join("\n\n", messageThread));
+        chat.Name = summary;
+        store.Set(chatId, chat);
+        return Ok(summary);
     }
 
     [HttpPost("{chatId}")]
