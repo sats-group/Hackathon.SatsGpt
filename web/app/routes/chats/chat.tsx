@@ -1,9 +1,12 @@
 import { Button } from "~/components/ui/button";
 import type { Route } from "./+types/chat";
 import { cn } from "~/lib/utils";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { fetchChat } from "~/lib/chat.server";
+import { useFetcher } from "react-router";
+import type { ChatMessage, Chat } from "~/lib/chat-message";
+import { useChatStore } from "~/lib/chat-store";
 
 export async function loader({ params }: Route.LoaderArgs) {
   const chat = await fetchChat({ id: params.chatId });
@@ -22,18 +25,7 @@ export async function loader({ params }: Route.LoaderArgs) {
   return { chat };
 }
 
-interface ChatMessage {
-  content: string;
-  role: "user" | "assistant";
-  id: string;
-}
 
-interface Chat {
-  id: string;
-  name: string;
-  createdAt: string;
-  messages: ChatMessage[];
-}
 
 const createUserMessage = (message: string) => {
   return {
@@ -43,26 +35,32 @@ const createUserMessage = (message: string) => {
   } as ChatMessage;
 };
 
-export default function Chat({ loaderData, params }: Route.ComponentProps) {
+export default function ChatView({ loaderData, params }: Route.ComponentProps) {
   const { chat } = loaderData;
   const [messages, setMessages] = useState<ChatMessage[]>(chat.messages);
   const [currentMessage, setCurrentMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const updateChatName = useChatStore((state) => state.updateChatName);
+  const fetcher = useFetcher();
 
   useEffect(() => {
     setMessages(chat.messages);
-    scrollToBottom();
-  }, [chat]);
 
-  const scrollToBottom = useCallback(() => {
-    console.log("scrollToBottom");
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, []);
+    // Summarize chat when opened if it has messages
+    // if (chat.messages.length > 0 && chat.name.startsWith("Untitled")) {
+    //   console.log("Summarizing chat", chat.id);
+    //   fetcher.submit(null, {
+    //     method: "POST",
+    //     action: `/chats/${chat.id}/summarize`,
+    //   });
+    // }
+  }, [chat, fetcher]);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [scrollToBottom]);
+    if (fetcher.data?.name) {
+      updateChatName(chat.id, fetcher.data.name);
+    }
+  }, [fetcher.data, chat.id, updateChatName]);
 
   const handleStreamResponse = async (response: Response) => {
     if (!response.body) {
@@ -78,7 +76,7 @@ export default function Chat({ loaderData, params }: Route.ComponentProps) {
       role: "assistant",
       id: crypto.randomUUID(),
     };
-    setMessages(prev => [...prev, assistantMessage]);
+    setMessages((prev) => [...prev, assistantMessage]);
 
     try {
       while (true) {
@@ -88,12 +86,12 @@ export default function Chat({ loaderData, params }: Route.ComponentProps) {
         }
 
         const text = decoder.decode(value);
-        setMessages(prev => {
+        setMessages((prev) => {
           const lastMessage = prev[prev.length - 1];
           if (lastMessage.role === "assistant") {
             return [
               ...prev.slice(0, -1),
-              { ...lastMessage, content: lastMessage.content + text }
+              { ...lastMessage, content: lastMessage.content + text },
             ];
           }
           return prev;
@@ -114,7 +112,7 @@ export default function Chat({ loaderData, params }: Route.ComponentProps) {
 
     setIsLoading(true);
     const userMessage = createUserMessage(currentMessage);
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setCurrentMessage("");
 
     try {
@@ -159,7 +157,6 @@ export default function Chat({ loaderData, params }: Route.ComponentProps) {
               </div>
             </div>
           ))}
-          <div ref={messagesEndRef} />
         </div>
       </div>
       <div className="p-4">
