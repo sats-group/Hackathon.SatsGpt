@@ -25,7 +25,16 @@ public class ChatController(AgentRunner runner, ChatStore store) : ControllerBas
             return NotFound();
         }
 
-        return Ok(chat);
+        // Filter out system messages
+        var filteredChat = new CachedChat
+        {
+            Id = chat.Id,
+            Name = chat.Name,
+            CreatedAt = chat.CreatedAt,
+            Messages = chat.Messages.Where(m => m.Role != ChatMessageRole.System).ToList()
+        };
+
+        return Ok(filteredChat);
     }
 
     [HttpPost("{chatId}")]
@@ -46,7 +55,8 @@ public class ChatController(AgentRunner runner, ChatStore store) : ControllerBas
             chat.Messages.Add(new CachedChatMessage
             {
                 Role = ChatMessageRole.User,
-                Content = message
+                Content = message,
+                Id = Guid.NewGuid().ToString()
             });
         }
         else
@@ -58,8 +68,8 @@ public class ChatController(AgentRunner runner, ChatStore store) : ControllerBas
                 CreatedAt = DateTime.UtcNow,
                 Messages =
                 [
-                    new () { Role = ChatMessageRole.System, Content = SystemPrompt.Default },
-                    new () { Role = ChatMessageRole.User, Content = message }
+                    new () { Id = Guid.NewGuid().ToString(), Role = ChatMessageRole.System, Content = SystemPrompt.Default },
+                    new () { Id = Guid.NewGuid().ToString(), Role = ChatMessageRole.User, Content = message }
                 ]
             };
         }
@@ -70,7 +80,7 @@ public class ChatController(AgentRunner runner, ChatStore store) : ControllerBas
 
         await foreach (var content in updates)
         {
-            await streamWriter.WriteLineAsync(content);
+            await streamWriter.WriteAsync(content);
             await streamWriter.FlushAsync(cancellationToken);
         }
 

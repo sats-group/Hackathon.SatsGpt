@@ -10,22 +10,26 @@ public static class ChatMessageMapper
 
         foreach (var message in messages)
         {
+            var id = Guid.NewGuid().ToString();
             var cachedMessage = message switch
             {
                 SystemChatMessage systemChatMessage => new CachedChatMessage
                 {
+                    Id = id,
                     Role = ChatMessageRole.System,
                     Content = ExtractContentText(systemChatMessage.Content),
-                    ToolCallId = null
+                    ToolCallId = null                    
                 },
                 UserChatMessage userMessage => new CachedChatMessage
                 {
+                    Id = id,
                     Role = ChatMessageRole.User,
                     Content = ExtractContentText(userMessage.Content),
-                    ToolCallId = null
+                    ToolCallId = null                    
                 },
                 AssistantChatMessage assistantChatMessage => new CachedChatMessage
                 {
+                    Id = id,
                     Role = ChatMessageRole.Assistant,
                     Content = ExtractContentText(assistantChatMessage.Content),
                     ToolCalls = MapToolCalls(assistantChatMessage.ToolCalls),
@@ -34,7 +38,8 @@ public static class ChatMessageMapper
                 {
                     Role = ChatMessageRole.Tool,
                     Content = ExtractContentText(toolChatMessage.Content),
-                    ToolCallId = toolChatMessage.ToolCallId
+                    ToolCallId = toolChatMessage.ToolCallId,
+                    Id = id
                 },
                 _ => null
             };

@@ -1,5 +1,5 @@
 import { BotMessageSquare } from "lucide-react";
-import { Link, Outlet, useNavigate } from "react-router";
+import { Link, Outlet, useLoaderData, useNavigate } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
   Sidebar,
@@ -15,6 +15,12 @@ import {
 } from "~/components/ui/sidebar";
 import { SidebarInset } from "~/components/ui/sidebar";
 import { useState } from "react";
+import { fetchAllChats } from "~/lib/chat.server";
+
+export async function loader() {
+  const chats = await fetchAllChats();
+  return { chats };
+}
 
 export default function Layout() {
   return (
@@ -31,17 +37,23 @@ export default function Layout() {
 interface Chat {
   id: string;
   name: string;
+  createdAt: string;
 }
 
 function AppSidebar() {
-  const [chats, setChats] = useState<Chat[]>([]);
+  const { chats: initialChats } = useLoaderData<typeof loader>();
+  const [chats, setChats] = useState<Chat[]>(initialChats);
   const navigate = useNavigate();
 
   function createChat() {
     const uuid = crypto.randomUUID();
-    const chat = { id: uuid, name: `Chat ${new Date().toLocaleString()}` };
+    const chat = {
+      id: uuid,
+      name: `Chat ${new Date().toLocaleString()}`,
+      createdAt: new Date().toISOString(),
+    };
     console.log(chat);
-    setChats([...chats, chat]);
+    setChats([chat, ...chats]);
     navigate(`/chats/${uuid}`);
   }
 
@@ -80,7 +92,12 @@ function AppSidebar() {
                     asChild
                     // isActive={location.pathname === "/"}
                   >
-                    <Link to={`/chats/${chat.id}`}>{chat.name}</Link>
+                    <Link to={`/chats/${chat.id}`}>
+                      {chat.name}
+                      {/* <span className="text-xs text-gray-500">
+                        {new Date(chat.createdAt).toLocaleString()}
+                      </span> */}
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
