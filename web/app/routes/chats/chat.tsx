@@ -73,7 +73,7 @@ export default function ChatView({ loaderData, params }: Route.ComponentProps) {
     if (textareaRef.current) {
       textareaRef.current.focus();
     }
-  }, [isLoading, textareaRef, messages]);
+  }, [isLoading, textareaRef]);
 
   const handleStreamResponse = async (response: Response) => {
     if (!response.body) {
