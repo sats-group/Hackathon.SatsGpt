@@ -8,6 +8,7 @@ import { useFetcher } from "react-router";
 import type { ChatMessage, Chat } from "~/lib/chat-message";
 import { useChatStore } from "~/lib/chat-store";
 import ReactMarkdown from "react-markdown";
+import { Messages } from "./components/messages";
 
 export async function loader({ params }: Route.LoaderArgs) {
   const chat = await fetchChat({ id: params.chatId });
@@ -48,13 +49,14 @@ export default function ChatView({ loaderData, params }: Route.ComponentProps) {
     setMessages(chat.messages);
 
     // Summarize chat when opened if it has messages
-    // if (chat.messages.length > 0 && chat.name.startsWith("Untitled")) {
-    //   console.log("Summarizing chat", chat.id);
-    //   fetcher.submit(null, {
-    //     method: "POST",
-    //     action: `/chats/${chat.id}/summarize`,
-    //   });
-    // }
+    const summaryEnabled = false
+    if (summaryEnabled && chat.messages.length > 0 && chat.name.startsWith("Untitled")) {
+      console.log("Summarizing chat", chat.id);
+      fetcher.submit(null, {
+        method: "POST",
+        action: `/chats/${chat.id}/summarize`,
+      });
+    }
   }, [chat, fetcher]);
 
   useEffect(() => {
@@ -138,30 +140,7 @@ export default function ChatView({ loaderData, params }: Route.ComponentProps) {
 
   return (
     <div className="flex h-[calc(100vh-4rem)] flex-col">
-      <div className="flex-1 overflow-y-auto p-4">
-        <div className="mx-auto max-w-3xl space-y-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={cn(
-                "flex w-full animate-in fade-in slide-in-from-bottom-2 duration-300",
-                message.role === "user" ? "justify-end" : "justify-start"
-              )}
-            >
-              <div
-                className={cn(
-                  "max-w-[80%] rounded-lg px-4 py-2",
-                  message.role === "user" ? "bg-muted" : ""
-                )}
-              >
-                <div className="prose">
-                  <ReactMarkdown>{message.content}</ReactMarkdown>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <Messages messages={messages} />
       <div className="p-4">
         <div className="mx-auto max-w-3xl">
           <form onSubmit={createMessage} className="flex gap-2 items-start">
