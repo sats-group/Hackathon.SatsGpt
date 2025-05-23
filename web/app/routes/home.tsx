@@ -1,5 +1,5 @@
 import type { Route } from "./+types/home";
-import { Link } from "react-router";
+import { Link, redirect } from "react-router";
 
 // export function meta({}: Route.MetaArgs) {
 //   return [
@@ -7,6 +7,10 @@ import { Link } from "react-router";
 //     { name: "description", content: "Welcome to React Router!" },
 //   ];
 // }
+
+export async function loader() {
+  return redirect("/chats");
+}
 
 export default function Home() {
   return <Link to="/chats">Chats</Link>;
