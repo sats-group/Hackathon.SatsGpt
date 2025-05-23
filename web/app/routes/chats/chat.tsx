@@ -27,8 +27,6 @@ export async function loader({ params }: Route.LoaderArgs) {
   return { chat };
 }
 
-
-
 const createUserMessage = (message: string) => {
   return {
     content: message,
@@ -49,8 +47,12 @@ export default function ChatView({ loaderData, params }: Route.ComponentProps) {
     setMessages(chat.messages);
 
     // Summarize chat when opened if it has messages
-    const summaryEnabled = false
-    if (summaryEnabled && chat.messages.length > 0 && chat.name.startsWith("Untitled")) {
+    const summaryEnabled = false;
+    if (
+      summaryEnabled &&
+      chat.messages.length > 0 &&
+      chat.name.startsWith("Untitled")
+    ) {
       console.log("Summarizing chat", chat.id);
       fetcher.submit(null, {
         method: "POST",
@@ -142,12 +144,12 @@ export default function ChatView({ loaderData, params }: Route.ComponentProps) {
     <div className="flex h-[calc(100vh)] flex-col">
       <Messages messages={messages} />
       <div className="p-4 pb-18 pt-0">
-        <div className="mx-auto max-w-3xl border rounded-2xl p-2 shadow-lg">
+        <div className="mx-auto max-w-3xl border rounded-2xl p-2 shadow-lg ring-offset-background focus-within:ring-2 focus-within:ring-ring">
           <form onSubmit={createMessage} className="flex gap-2 items-end">
             <textarea
               rows={3}
               placeholder="Ask about SATS…"
-              className="flex-1 resize-none rounded-xl bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="w-full resize-none rounded-xl bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none"
               value={currentMessage}
               onChange={(e) => setCurrentMessage(e.target.value)}
               disabled={isLoading}
@@ -156,7 +158,7 @@ export default function ChatView({ loaderData, params }: Route.ComponentProps) {
               variant="default"
               size="icon"
               type="submit"
-              className="rounded-full cursor-pointer"
+              className="rounded-full cursor-pointer mr-2 mb-2 ml-1"
               disabled={isLoading}
             >
               {isLoading && <Loader2 className="w-8 h-8 animate-spin" />}
