@@ -27,6 +27,7 @@ public static class ServiceCollectionExtensions
                 return new AgentRunner(client.GetChatClient("gpt-4o"), tools);
             })
             .AddSingleton<ChatStore>()
+            .AddScoped<ChatNameProvider>()
             .AddScoped<ITool, SearchDocumentsTool>()
             .AddScoped<ITool, ReadDocumentByIdTool>()
             .AddScoped<ITool, ReadDocumentByPathTool>()
@@ -40,7 +41,7 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
-    
+
     public static IServiceCollection AddDocumentStore(this IServiceCollection services, PostgresOptions options)
     {
         services
