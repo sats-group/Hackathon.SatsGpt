@@ -2,7 +2,7 @@ import { Button } from "~/components/ui/button";
 import type { Route } from "./+types/chat";
 import { cn } from "~/lib/utils";
 import { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import { ArrowUp, CircleArrowUp, Loader2 } from "lucide-react";
 import { fetchChat } from "~/lib/chat.server";
 import { useFetcher } from "react-router";
 import type { ChatMessage, Chat } from "~/lib/chat-message";
@@ -139,27 +139,28 @@ export default function ChatView({ loaderData, params }: Route.ComponentProps) {
   };
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] flex-col">
+    <div className="flex h-[calc(100vh)] flex-col">
       <Messages messages={messages} />
-      <div className="p-4">
-        <div className="mx-auto max-w-3xl">
-          <form onSubmit={createMessage} className="flex gap-2 items-start">
+      <div className="p-4 pb-18">
+        <div className="mx-auto max-w-3xl border rounded-2xl p-2 shadow-lg">
+          <form onSubmit={createMessage} className="flex gap-2 items-end">
             <textarea
               rows={3}
-              placeholder="Type your message..."
-              className="flex-1 resize-none rounded-2xl border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              placeholder="Ask about SATS…"
+              className="flex-1 resize-none rounded-xl bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               value={currentMessage}
               onChange={(e) => setCurrentMessage(e.target.value)}
               disabled={isLoading}
             />
             <Button
               variant="default"
-              size="lg"
+              size="icon"
               type="submit"
+              className="rounded-full cursor-pointer"
               disabled={isLoading}
             >
-              {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Send
+              {isLoading && <Loader2 className="w-8 h-8 animate-spin" />}
+              {!isLoading && <ArrowUp className="w-8 h-8" />}
             </Button>
           </form>
         </div>
