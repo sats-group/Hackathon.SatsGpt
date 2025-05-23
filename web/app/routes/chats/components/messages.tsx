@@ -15,7 +15,7 @@ export function Messages({ messages }: { messages: ChatMessage[] }) {
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4" ref={chatContainerRef}>
+    <div className="flex-1 overflow-y-auto p-4 pb-12" ref={chatContainerRef}>
       <div className="mx-auto max-w-3xl space-y-4">
         {messages.length === 0 && (
           <div className="flex justify-center items-center h-[calc(100vh-24rem)]">
